@@ -4,19 +4,19 @@
   <!-- Map -->
   <div id="mapid" class=""></div>
 
-  <div id="mapcontent" class="container-fluid overflow-auto">
+<div id="mapcontent" class="container-fluid overflow-auto">
 
-    <div class="d-flex bg-white my-3 border" v-for="item in dataList" :key="item.id">
-      <div class="col-6">
-        <p class="p-3">{{item.stop_name}}</p>
+  <div class="d-flex bg-white my-3 border" v-for="item in dataList" :key="item.id">
+    <div class="col-6">
+      <p class="p-3">{{item.stop_name}}</p>
 
-      </div>
-      <div class="col-6 text-end">
-        <p class="p-3">{{item.distance}}<span>km</span></p>
-      </div>
     </div>
-
+    <div class="col-6 text-end">
+      <p class="p-3">{{item.distance}}<span>km</span></p>
+    </div>
   </div>
+
+</div>
 
 </div>
 </template>
@@ -49,47 +49,64 @@ export default {
     const dataList = ref('')
     const polygonList = ref('')
 
-    const getList = () => {
-      axios.post('https://asia-east2-botfat.cloudfunctions.net/project_controller', {
-        lng: '121.50463',
-        lat: '24.993955',
-        function: 'xinbei_distance'
-      }).then(function (response) {
-        console.log(response)
-        dataList.value = response.data.result
+    // 取得api data
+    const getList = async () => {
+      const { data } = await axios.post(
+        'https://asia-east2-botfat.cloudfunctions.net/project_controller',
+        {
+          lng: '121.50463',
+          lat: '24.993955',
+          function: 'xinbei_distance'
+        }
+      )
+      return data?.result
+    }
 
-        dataList.value.forEach(item => {
-          markerCluster.addLayer(
+    const getPolygonList = async () => {
+      const { data } = await axios.post('https://asia-east2-botfat.cloudfunctions.net/project_controller', {
+        directory: 'tucheng.json',
+        function: 'xinbei_json'
+      })
+
+      return data?.result?.features
+    }
+
+    const addCluster = (arr) => {
+      arr.forEach(item => {
+        markerCluster.addLayer(
           // 添加標記點
-            L.marker([item.latitude, item.longitude], {
-              title: item.stop_name
-            })
-              .bindPopup(item.stop_name)
-          )
-        })
+          L.marker([item.latitude, item.longitude], {
+            title: item.stop_name
+          })
+            .bindPopup(item.stop_name)
+        )
+      })
 
-        mymap.addLayer(markerCluster)
+      mymap.addLayer(markerCluster)
+    }
+
+    const addPolygon = (arr) => {
+      const newpolygon = arr.map(item => item.geometry.coordinates[0]).map(item =>
+        item.map(item => [item[1], item[0]])
+      )
+
+      console.log(newpolygon)
+      //  var latlngs = [[
+      //         [25.0270000, 121.555745],
+      //         [25.0370000, 121.565745],
+      //         [25.0270000, 121.575745],
+      //         [25.0270000, 121.555745]
+      //       ]]
+      newpolygon.forEach(latlngs => {
+        L.polygon(latlngs).addTo(mymap)
       })
     }
 
-    const getPolygonList = () => {
-      axios.post('https://asia-east2-botfat.cloudfunctions.net/project_controller', {
-        directory: 'tucheng.json',
-        function: 'xinbei_json'
-      }).then(function (response) {
-        console.log(response.data.result.features)
-        polygonList.value = response.data.result.features
-
-        const newpolygon = polygonList.value.map(item => item.geometry.coordinates[0]).map(item =>
-          item.map(item => [item[1], item[0]])
-        )
-
-        console.log(newpolygon)
-
-        newpolygon.forEach(latlngs => {
-          L.polygon(latlngs).addTo(mymap)
-        })
-      })
+    const showData = async () => {
+      dataList.value = await getList()
+      addCluster(dataList.value)
+      polygonList.value = await getPolygonList()
+      addPolygon(polygonList.value)
     }
 
     onMounted(() => {
@@ -99,11 +116,10 @@ export default {
         attribution:
           '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
       }).addTo(mymap)
-      getList()
-      getPolygonList()
+      showData()
     })
 
-    return { getList, getPolygonList, dataList, polygonList }
+    return { getList, getPolygonList, addCluster, addPolygon, showData, dataList, polygonList }
   }
 }
 </script>
