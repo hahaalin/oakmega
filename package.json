@@ -14,7 +14,10 @@
     "leaflet": "^1.8.0",
     "leaflet.markercluster": "^1.5.3",
     "vue": "^3.0.0",
-    "vue-router": "^4.0.0-0"
+    "vue-router": "^4.0.0-0",
+    "vue3-google-login": "^2.0.9",
+    "vue3-google-oauth2": "^1.0.6",
+    "vuex": "^4.0.2"
   },
   "devDependencies": {
     "@vue/cli-plugin-babel": "~4.5.13",

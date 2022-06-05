@@ -1,6 +1,6 @@
 <template>
 <div class="bg-light">
-
+<userData />
   <!-- Map -->
   <div id="mapid" class=""></div>
 
@@ -24,7 +24,9 @@
 <script>
 // @ is an alias to /src
 import L from 'leaflet'
-import { onMounted, ref } from 'vue'
+import { onMounted, ref, computed } from 'vue'
+import { useStore } from 'vuex'
+import { useRouter } from 'vue-router'
 import 'leaflet/dist/leaflet.css'
 import icon from 'leaflet/dist/images/marker-icon.png'
 import iconShadow from 'leaflet/dist/images/marker-shadow.png'
@@ -32,7 +34,7 @@ import axios from 'axios'
 import 'leaflet.markercluster/dist/MarkerCluster.css'
 import 'leaflet.markercluster/dist/MarkerCluster.Default.css'
 import { MarkerClusterGroup } from 'leaflet.markercluster'
-
+import userData from '@/components/userData.vue'
 const DefaultIcon = L.icon({
   iconUrl: icon,
   shadowUrl: iconShadow
@@ -42,12 +44,16 @@ L.Marker.prototype.options.icon = DefaultIcon
 export default {
   name: 'Home',
   components: {
+    userData
   },
   setup () {
+    const store = useStore()
+    const router = useRouter()
     let mymap
     const markerCluster = new MarkerClusterGroup()
     const dataList = ref('')
     const polygonList = ref('')
+    const googleUserName = computed(() => store.state.googleUserName)
 
     // 取得api data
     const getList = async () => {
@@ -110,6 +116,10 @@ export default {
     }
 
     onMounted(() => {
+      if (!googleUserName.value) {
+        router.push('/googleLogin')
+      }
+
       mymap = L.map('mapid').setView([23.97565, 120.9738819], 8)
 
       L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
@@ -119,7 +129,7 @@ export default {
       showData()
     })
 
-    return { getList, getPolygonList, addCluster, addPolygon, showData, dataList, polygonList }
+    return { getList, getPolygonList, addCluster, addPolygon, showData, dataList, polygonList, googleUserName }
   }
 }
 </script>
@@ -127,8 +137,10 @@ export default {
   #mapid{
     width: 100%;
     height: 60vh;
+    z-index: 1;
   }
   #mapcontent{
     height:40vh;
   }
+
 </style>
