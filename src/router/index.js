@@ -11,6 +11,11 @@ const routes = [
     path: '/googleLogin',
     name: 'GoogleLogin',
     component: () => import('../views/GoogleLogin.vue')
+  },
+  {
+    path: '/fbLogin',
+    name: 'FbLogin',
+    component: () => import('../views/FbLogin.vue')
   }
 ]
 

@@ -1,21 +1,29 @@
 <template>
   <div class="userWrap">
-    <p>使用者名稱:<span>{{googleUserName}}</span></p>
-    <p>使用者相片:<img :src="googleUserImg"></p>
+    <p>google暱稱:<span>{{googleUserName}}</span></p>
+    <p>google相片:<img :src="googleUserImg" alt="googleUserImg"></p>
+    <p>fb暱稱:<span>{{fbUserName}}</span></p>
+    <p>fb相片:<img :src="fbUserImg" alt="fbUserImg"></p>
+    <!-- <fbLoginout/> -->
   </div>
 </template>
 
 <script>
-import { computed } from 'vue'
-import { useStore } from 'vuex'
-
+import { ref } from 'vue'
+// import fbLoginout from '@/components/fbLoginout.vue'
 export default {
+  components: {
+    // fbLoginout
+  },
   setup () {
-    const store = useStore()
-    const googleUserName = computed(() => store.state.googleUserName)
-    const googleUserImg = computed(() => store.state.googleUserImg)
+    const googleUserName = ref('')
+    const googleUserImg = ref('')
+    googleUserName.value = document.cookie.replace(/(?:(?:^|.*;\s*)googleUserName\s*=\s*([^;]*).*$)|^.*$/, '$1')
+    googleUserImg.value = document.cookie.replace(/(?:(?:^|.*;\s*)googleUserImg\s*=\s*([^;]*).*$)|^.*$/, '$1')
+    const fbUserName = ref(document.cookie.replace(/(?:(?:^|.*;\s*)fbUserName\s*=\s*([^;]*).*$)|^.*$/, '$1'))
+    const fbUserImg = ref(document.cookie.replace(/(?:(?:^|.*;\s*)fbUserImg\s*=\s*([^;]*).*$)|^.*$/, '$1'))
 
-    return { googleUserName, googleUserImg }
+    return { googleUserName, googleUserImg, fbUserName, fbUserImg }
   }
 }
 </script>

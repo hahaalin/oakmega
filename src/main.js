@@ -12,25 +12,34 @@ const store = createStore({
   state () {
     return {
       googleUserName: '',
-      googleUserImg: ''
+      googleUserImg: '',
+      FB: null
     }
   },
   mutations: {
-    changeGoogleUserName (state, status) {
-      state.googleUserName = status
+    changeGoogleUserName (state, payload) {
+      state.googleUserName = payload
     },
-    changeGoogleUserImg (state, status) {
-      state.googleUserImg = status
+    changeGoogleUserImg (state, payload) {
+      state.googleUserImg = payload
+    },
+    setFB (state, payload) {
+      state.FB = payload
+    },
+    loginOut (state) {
+      // 檢查登入狀態
+      console.log('登出')
+      state.FB.logout()
     }
-
   },
   actions: {
-    updateGoogleUserName (context, status) {
-      context.commit('changeGoogleUserName', status)
+    updateGoogleUserName (context, payload) {
+      context.commit('changeGoogleUserName', payload)
     },
-    updateGoogleUserImg (context, status) {
-      context.commit('changeGoogleUserImg', status)
+    updateGoogleUserImg (context, payload) {
+      context.commit('changeGoogleUserImg', payload)
     }
+
   }
 })
 

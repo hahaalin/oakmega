@@ -1,11 +1,11 @@
 <template>
-<div>
-  <GoogleLogin :callback="callback"/>
-</div>
+  <div>
+    <GoogleLogin :callback="callback" prompt/>
+  </div>
 </template>
 
 <script>
-import { computed } from 'vue'
+import { computed, onMounted } from 'vue'
 import { useStore } from 'vuex'
 import { decodeCredential } from 'vue3-google-login'
 import { useRouter } from 'vue-router'
@@ -22,12 +22,24 @@ export default {
 
       store.dispatch('updateGoogleUserName', userData.name)
       store.dispatch('updateGoogleUserImg', userData.picture)
+      document.cookie = `googleUserName=${userData.name}`
+      document.cookie = `googleUserImg=${userData.picture}`
       console.log('Handle the response', userData)
-      if (googleUserName.value) {
-        router.push('/')
+      isLogin()
+    }
+
+    const isLogin = () => {
+      const googleUserName = document.cookie.replace(/(?:(?:^|.*;\s*)googleUserName\s*=\s*([^;]*).*$)|^.*$/, '$1')
+      if (googleUserName) {
+        router.push('/fbLogin')
       }
     }
-    return { callback, googleUserName, googleUserImg }
+
+    onMounted(() => {
+      isLogin()
+    })
+
+    return { callback, googleUserName, googleUserImg, isLogin }
   }
 }
 </script>
