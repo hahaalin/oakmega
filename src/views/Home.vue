@@ -9,7 +9,7 @@
 
   <searchList @show-data="showData"/>
 
-    <div class="d-flex bg-white my-3 border" v-for="item in dataList" :key="item.id" @click="flyToList(item.longitude,item.latitude)" >
+    <div id="resultListWrap" class="d-flex bg-white my-3 border" v-for="item in dataList" :key="item.id" @click="flyToList(item.longitude,item.latitude)" >
       <div class="col-6">
         <p class="p-3">{{item.stop_name}} {{item.longitude}},{{item.latitude}}</p>
       </div>
@@ -133,6 +133,10 @@ export default {
   }
   #mapcontent{
     height:40vh;
+  }
+
+  #resultListWrap:hover{
+    background-color: #ccc !important;
   }
 
 </style>
