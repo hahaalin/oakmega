@@ -1,5 +1,6 @@
 <template>
   <div>
+    <p>請登入Google</p>
     <GoogleLogin :callback="callback" prompt/>
   </div>
 </template>
@@ -10,6 +11,7 @@ import { useStore } from 'vuex'
 import { decodeCredential } from 'vue3-google-login'
 import { useRouter } from 'vue-router'
 export default {
+  name: 'googleLogin',
   setup () {
     const router = useRouter()
     const store = useStore()

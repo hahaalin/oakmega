@@ -1,5 +1,5 @@
 <template>
-  <div class="userWrap">
+  <div class="userWrap" v-if="googleUserName">
     <p>google暱稱:<span>{{googleUserName}}</span></p>
     <p>google相片:<img :src="googleUserImg" alt="googleUserImg"></p>
     <p>fb暱稱:<span>{{fbUserName}}</span></p>
@@ -10,10 +10,8 @@
 
 <script>
 import { ref } from 'vue'
-// import fbLoginout from '@/components/fbLoginout.vue'
 export default {
   components: {
-    // fbLoginout
   },
   setup () {
     const googleUserName = ref('')

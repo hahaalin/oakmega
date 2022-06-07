@@ -8,16 +8,6 @@
     </fb:login-button>
     <p>{{ status }}</p>
 
-        <!-- <div
-      class="fb-login-button"
-      data-width=""
-      data-size="large"
-      data-button-type="login_with"
-      data-layout="default"
-      data-auto-logout-link="false"
-      data-use-continue-as="false"
-      onlogin="checkLoginState"
-    ></div> -->
   </div>
 </template>
 <script>
@@ -26,12 +16,13 @@ import { onMounted, ref, computed } from 'vue'
 import { useStore } from 'vuex'
 import { useRouter } from 'vue-router'
 export default {
+  name: 'fbLogin',
   setup () {
+    console.log('FBcreated')
     const router = useRouter()
     const store = useStore()
     const FB = computed(() => store.state.FB)
     const status = ref('')
-    initFacebook()
 
     const checkLoginState = () => {
       FB.value.getLoginStatus(function (response) {
@@ -83,6 +74,7 @@ export default {
     }
 
     onMounted(() => {
+      initFacebook()
       window.checkLoginState = checkLoginState
       isLogin()
     })

@@ -1,31 +1,17 @@
 <template>
 <div class="bg-light">
-<userData />
+  <userData />
   <!-- Map -->
-  <div id="mapid" class=""></div>
+  <div id="mapid"></div>
 
   <div id="mapcontent" class="container-fluid overflow-auto">
   <h1>新北市都市更新地點查詢</h1>
 
-  <div class="row g-3 align-items-center p-2">
-    <div class="col-auto">
-      <label for="inputPassword6" class="col-form-label">經緯度查詢</label>
-    </div>
-    <div class="col-auto">
-      <input type="text" class="form-control" v-model="lng" placeholder="經度 EX:121.50463">
-    </div>
-    <div class="col-auto">
-      <input type="text"  class="form-control" v-model="lat" placeholder="緯度 EX:24.993955" >
-    </div>
-    <div class="col-auto">
-    <button type="button" class="btn btn-primary" @click="showData">查詢</button>
-    </div>
-  </div>
+  <searchList @show-data="showData"/>
 
-    <div class="d-flex bg-white my-3 border" v-for="item in dataList" :key="item.id">
+    <div class="d-flex bg-white my-3 border" v-for="item in dataList" :key="item.id" @click="flyToList(item.longitude,item.latitude)" >
       <div class="col-6">
-        <p class="p-3">{{item.stop_name}}</p>
-
+        <p class="p-3">{{item.stop_name}} {{item.longitude}},{{item.latitude}}</p>
       </div>
       <div class="col-6 text-end">
         <p class="p-3">{{item.distance}}<span>km</span></p>
@@ -40,17 +26,17 @@
 <script>
 // @ is an alias to /src
 import L from 'leaflet'
-import { onMounted, ref, computed } from 'vue'
-import { useStore } from 'vuex'
-// import { useRouter } from 'vue-router'
+import { onMounted, ref } from 'vue'
+import { useRouter } from 'vue-router'
 import 'leaflet/dist/leaflet.css'
 import icon from 'leaflet/dist/images/marker-icon.png'
 import iconShadow from 'leaflet/dist/images/marker-shadow.png'
-import axios from 'axios'
+import { getList, getPolygonList } from '@/methods/api'
 import 'leaflet.markercluster/dist/MarkerCluster.css'
 import 'leaflet.markercluster/dist/MarkerCluster.Default.css'
 import { MarkerClusterGroup } from 'leaflet.markercluster'
 import userData from '@/components/userData.vue'
+import searchList from '@/components/searchList.vue'
 const DefaultIcon = L.icon({
   iconUrl: icon,
   shadowUrl: iconShadow
@@ -60,52 +46,30 @@ L.Marker.prototype.options.icon = DefaultIcon
 export default {
   name: 'Home',
   components: {
-    userData
+    userData, searchList
   },
   setup () {
-    const store = useStore()
-    // const router = useRouter()
+    const router = useRouter()
     let mymap
     const markerCluster = new MarkerClusterGroup()
-    const lng = ref('121.50463')
-    const lat = ref('24.993955')
     const dataList = ref('')
     const polygonList = ref('')
-    const googleUserName = computed(() => store.state.googleUserName)
-
-    // 取得api data
-    const getList = async (lng, lat) => {
-      const { data } = await axios.post(
-        'https://asia-east2-botfat.cloudfunctions.net/project_controller',
-        {
-          lng: lng,
-          lat: lat,
-          function: 'xinbei_distance'
-        }
-      )
-      return data?.result
-    }
-
-    const getPolygonList = async () => {
-      const { data } = await axios.post('https://asia-east2-botfat.cloudfunctions.net/project_controller', {
-        directory: 'tucheng.json',
-        function: 'xinbei_json'
-      })
-
-      return data?.result?.features
-    }
 
     const addCluster = (arr) => {
       arr.forEach(item => {
         markerCluster.addLayer(
-          // 添加標記點
           L.marker([item.latitude, item.longitude], {
             title: item.stop_name
           })
-            .bindPopup(item.stop_name)
+            .bindPopup(`
+              <p>站點: ${item.stop_name}</p>
+              <p>經度: ${item.longitude}</p>
+              <p>緯度: ${item.latitude}</p>`, {
+              closeButton: false
+            })
         )
       })
-
+      // console.log(markerCluster)
       mymap.addLayer(markerCluster)
     }
 
@@ -124,23 +88,32 @@ export default {
       })
     }
 
-    const showData = async () => {
-      if (!lng.value || !lat.value) {
+    const showData = async (lng, lat) => {
+      const googleUserName = document.cookie.replace(/(?:(?:^|.*;\s*)googleUserName\s*=\s*([^;]*).*$)|^.*$/, '$1')
+
+      if (!googleUserName) {
+        alert('請先登入')
+        router.push('/googleLogin')
+      } else if (!lng || !lat) {
         alert('請輸入經緯度')
       } else {
+        mymap.setView([25.03306616058466, 121.54724121093751], 11)
         markerCluster.clearLayers()// 清除圖層群組
-        dataList.value = await getList(lng.value, lat.value)
-        console.log(dataList.value)
+        dataList.value = await getList(lng, lat)
         addCluster(dataList.value)
         polygonList.value = await getPolygonList()
         addPolygon(polygonList.value)
       }
     }
+    const flyToList = (lng, lat) => {
+      const layers = markerCluster.getLayers()
+      const point = layers.filter(item => item.getLatLng().lat === lat && item.getLatLng().lng === lng)[0]
+      // window.point = point
+      mymap.flyTo(point.getLatLng(), 18)
+      mymap.on('zoomend', () => { point.openPopup() })
+    }
 
     onMounted(() => {
-      // if (!googleUserName.value) {
-      //   router.push('/googleLogin')
-      // }
       mymap = L.map('mapid').setView([25.03306616058466, 121.54724121093751], 11)
       // window.mymap = mymap
       L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
@@ -148,8 +121,7 @@ export default {
           '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
       }).addTo(mymap)
     })
-
-    return { getList, getPolygonList, addCluster, addPolygon, showData, dataList, polygonList, googleUserName, lng, lat }
+    return { getList, getPolygonList, addCluster, addPolygon, showData, dataList, polygonList, flyToList }
   }
 }
 </script>
