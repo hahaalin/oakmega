@@ -1,10 +1,8 @@
-import { useStore } from 'vuex'
+import { useStateHandle } from '@/methods/useStateHandle.js'
 
 export const initFacebook = () => {
-  const store = useStore()
-
+  const { stateHandle } = useStateHandle()
   window.fbAsyncInit = function () {
-    console.log('fbAsyncInit')
     /* global FB */
     FB.init({
       appId: process.env.VUE_APP_FB_APP_ID,
@@ -12,7 +10,7 @@ export const initFacebook = () => {
       xfbml: true,
       version: 'v14.0'
     })
-    store.commit('setFB', FB)
+    stateHandle('setFB', FB)
     FB.AppEvents.logPageView()
   }
 }

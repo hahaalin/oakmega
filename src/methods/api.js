@@ -3,7 +3,7 @@ import axios from 'axios'
 // 取得api data
 export const getList = async (lng, lat) => {
   const { data } = await axios.post(
-    'https://asia-east2-botfat.cloudfunctions.net/project_controller',
+    process.env.VUE_APP_API,
     {
       lng: lng,
       lat: lat,
@@ -14,7 +14,7 @@ export const getList = async (lng, lat) => {
 }
 
 export const getPolygonList = async () => {
-  const { data } = await axios.post('https://asia-east2-botfat.cloudfunctions.net/project_controller', {
+  const { data } = await axios.post(process.env.VUE_APP_API, {
     directory: 'tucheng.json',
     function: 'xinbei_json'
   })
